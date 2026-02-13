@@ -443,45 +443,134 @@
             }
         }
 
-        /* --- View Scratch --- */
-        .scratch-container {
+
+
+        /* --- View Letter --- */
+        .envelope-container {
             position: relative;
             width: 300px;
-            height: 150px;
-            margin: 0 auto;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            user-select: none;
+            height: 200px;
+            margin: 50px auto;
+            cursor: pointer;
+            perspective: 1000px;
         }
 
-        .scratch-content {
-            position: absolute;
+        .envelope {
+            position: relative;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #fff 0%, #ffebee 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            color: #d81b60;
-            font-weight: bold;
-            font-family: 'Dancing Script', cursive;
-            font-size: 1.8rem;
-            text-align: center;
-            padding: 10px;
-            z-index: 1;
+            background-color: #f48fb1;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
         }
 
-        #scratch-canvas {
+        .envelope::before {
+            /* Left flap */
+            content: '';
             position: absolute;
             top: 0;
             left: 0;
+            width: 0;
+            height: 0;
+            border-top: 100px solid transparent;
+            border-left: 150px solid #f06292;
+            border-bottom: 100px solid #f06292;
+            border-radius: 5px 0 0 5px;
+            z-index: 3;
+        }
+
+        .envelope::after {
+            /* Right flap */
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-top: 100px solid transparent;
+            border-right: 150px solid #e91e63;
+            border-bottom: 100px solid #e91e63;
+            border-radius: 0 5px 5px 0;
+            z-index: 3;
+        }
+
+        .flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-top: 110px solid #d81b60;
+            transform-origin: top;
+            transition: transform 0.6s, z-index 0.2s;
+            z-index: 4;
+        }
+
+        .envelope.open .flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .letter {
+            position: absolute;
+            bottom: 0;
+            left: 5%;
+            width: 90%;
+            height: 90%;
+            /* Initial height inside */
+            background: white;
+            padding: 20px;
+            box-sizing: border-box;
+            transition: all 0.6s 0.6s;
+            /* Delay for flap */
             z-index: 2;
-            cursor: pointer;
-            width: 100%;
-            height: 100%;
-            touch-action: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .envelope.open .letter {
+            bottom: 50%;
+            transform: translateY(50%) scale(1.1);
+            /* Pop out and center */
+            height: 350px;
+            /* Expand to show text */
+            z-index: 10;
+        }
+
+        .letter-content {
+            font-family: 'Dancing Script', cursive;
+            font-size: 0;
+            /* Hidden initially */
+            color: #880e4f;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.5s 1.2s;
+            line-height: applied;
+        }
+
+        .envelope.open .letter-content {
+            font-size: 1.2rem;
+            opacity: 1;
+        }
+
+        .pocket-bottom {
+            /* Bottom flap visual */
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-bottom: 100px solid #ec407a;
+            border-radius: 0 0 5px 5px;
+            z-index: 3;
         }
 
         /* --- View Gift --- */
@@ -668,24 +757,34 @@
         </div>
     </div>
 
-    <!-- VIEW 4.25: Scratch Card -->
-    <div id="view_scratch" class="view">
-        <div class="container">
-            <h2 style="color: #d81b60; margin-bottom: 2rem;">Scratch to Reveal a Secret! ✨</h2>
-            <div class="scratch-container">
-                <!-- Hidden Content -->
-                <div class="scratch-content">
-                    "When you miss me..." ❤️<br>
+    <!-- VIEW 4.25: Letter Open -->
+    <div id="view_letter" class="view">
+        <div class="container" style="background: transparent; box-shadow: none;">
+            <h2
+                style="color: #d81b60; margin-bottom: 2rem; background: rgba(255,255,255,0.8); padding: 5px 15px; border-radius: 15px; display: inline-block;">
+                A Hidden Message for You ✨</h2>
 
+            <div class="envelope-container" onclick="openLetter()">
+                <div id="envelope" class="envelope">
+                    <div class="front flap"></div>
+                    <div class="front pocket-bottom"></div>
+                    <div class="letter">
+                        <div class="letter-content">
+                            "When you miss me, just close your eyes for a second… I’m right there, holding your hand the
+                            way I always do.<br><br>
+                            No distance can ever change what my heart feels for you.<br><br>
+                            I miss you too — every quiet moment reminds me how lucky I am to have you." ❤️
+                        </div>
+                    </div>
                 </div>
-                <!-- Overlay Canvas -->
-                <canvas id="scratch-canvas" width="300" height="150"></canvas>
             </div>
 
-            <button id="after-scratch-btn" class="hidden" onclick="switchView('_gift')" style="margin-top: 30px;">
+            <button id="after-letter-btn" class="hidden" onclick="switchView('_gift')" style="margin-top: 150px;">
                 Continue ➡️
             </button>
-            <p style="margin-top: 15px; color: #f48fb1; font-size: 0.9rem;">(Scratch the card above!)</p>
+            <p id="letter-hint"
+                style="margin-top: 15px; color: #f48fb1; font-weight: bold; background: rgba(255,255,255,0.8); padding: 5px; border-radius: 5px; display: inline-block;">
+                (Tap the envelope to open!)</p>
         </div>
     </div>
 
@@ -730,7 +829,7 @@
                 // Init specific logic
                 if (viewNumber === 3) initProposalLogic();
                 if (viewNumber === 4) initPhotoQuiz();
-                if (viewNumber === '_scratch') initScratchCard();
+                if (viewNumber === '_letter') initLetter();
                 if (viewNumber === '_gift') initGiftLogic();
                 if (viewNumber === 5) initFinalLogic();
             }
@@ -980,7 +1079,7 @@
 
         function loadPhotoQuestion() {
             if (currentPhotoQIndex >= photoQuestions.length) {
-                switchView('_scratch'); // Go to Scratch View instead of Gift
+                switchView('_letter'); // Go to Letter View instead of Gift/Scratch
                 return;
             }
 
@@ -1028,119 +1127,28 @@
             }
         }
 
-        // --- Logic for View 4.25 (Scratch Card) ---
-        function initScratchCard() {
-            const canvas = document.getElementById('scratch-canvas');
-            const ctx = canvas.getContext('2d');
+        // --- Logic for View 4.25 (Letter) ---
+        function initLetter() {
             // Reset state
-            document.getElementById('after-scratch-btn').classList.add('hidden');
-
-            // Set canvas size matching CSS pixels to avoid blur
-            // We use the attributes width/height from HTML or set them here
-            canvas.width = 300;
-            canvas.height = 150;
-
-            const w = canvas.width;
-            const h = canvas.height;
-
-            // Fill with coating
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.fillStyle = '#CCCCCC'; // Silver/Gray
-            ctx.fillRect(0, 0, w, h);
-
-            // Add pattern or text
-            ctx.fillStyle = '#999999';
-            ctx.font = 'bold 24px Arial';
-            ctx.textAlign = "center";
-            ctx.fillText("Scratch Me!", w / 2, h / 2);
-
-            // Sparkling/Dust effect (simple noise)
-            for (let i = 0; i < 500; i++) {
-                ctx.fillStyle = Math.random() > 0.5 ? '#EEEEEE' : '#AAAAAA';
-                ctx.fillRect(Math.random() * w, Math.random() * h, 2, 2);
-            }
-
-            let isDrawing = false;
-
-            function getPos(e) {
-                const rect = canvas.getBoundingClientRect();
-                let clientX, clientY;
-
-                if (e.changedTouches && e.changedTouches.length > 0) {
-                    clientX = e.changedTouches[0].clientX;
-                    clientY = e.changedTouches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
-                }
-
-                return {
-                    x: (clientX - rect.left) * (canvas.width / rect.width),
-                    y: (clientY - rect.top) * (canvas.height / rect.height)
-                };
-            }
-
-            function scratch(e) {
-                if (!isDrawing) return;
-                e.preventDefault(); // Prevent scrolling on touch
-                const pos = getPos(e);
-
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.beginPath();
-                ctx.arc(pos.x, pos.y, 15, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Throttled check for performance
-                if (Math.random() > 0.5) checkScratchCompletion();
-            }
-
-            function startDraw(e) { isDrawing = true; scratch(e); }
-            function endDraw() { isDrawing = false; }
-
-            // Mouse
-            canvas.onmousedown = startDraw;
-            canvas.onmousemove = scratch;
-            canvas.onmouseup = endDraw;
-            canvas.onmouseleave = endDraw;
-
-            // Touch
-            canvas.ontouchstart = startDraw;
-            canvas.ontouchmove = scratch;
-            canvas.ontouchend = endDraw;
+            const envelope = document.getElementById('envelope');
+            envelope.classList.remove('open');
+            document.getElementById('after-letter-btn').classList.add('hidden');
+            document.getElementById('letter-hint').classList.remove('hidden');
         }
 
-        function checkScratchCompletion() {
-            const canvas = document.getElementById('scratch-canvas');
-            const ctx = canvas.getContext('2d');
-            const w = canvas.width;
-            const h = canvas.height;
+        function openLetter() {
+            const envelope = document.getElementById('envelope');
+            if (!envelope.classList.contains('open')) {
+                envelope.classList.add('open');
+                createConfetti();
+                document.getElementById('letter-hint').classList.add('hidden');
 
-            // Sample pixels (check center area mostly or stride)
-            // Getting full image data is expensive, let's optimize by checking stride
-            const imageData = ctx.getImageData(0, 0, w, h);
-            const pixels = imageData.data;
-            let transparentCount = 0;
-            const totalPixels = pixels.length / 4;
-
-            // Check opacity channel (every 4th byte)
-            // Optimization: check every 10th pixel
-            for (let i = 3; i < pixels.length; i += 40) {
-                if (pixels[i] < 128) {
-                    transparentCount++;
-                }
-            }
-
-            // Since we sample 1/10th, total sample size is totalPixels / 10
-            const sampleSize = totalPixels / 10;
-            const percent = (transparentCount / sampleSize) * 100;
-
-            if (percent > 40) {
-                const btn = document.getElementById('after-scratch-btn');
-                if (btn.classList.contains('hidden')) {
+                // Show continue button after animation
+                setTimeout(() => {
+                    const btn = document.getElementById('after-letter-btn');
                     btn.classList.remove('hidden');
                     btn.classList.add('show');
-                    createConfetti();
-                }
+                }, 2000);
             }
         }
 

@@ -708,12 +708,10 @@
                     <div class="memory-item">
                         <img src="images/surprise1.jpeg"
                             onerror="this.src='https://via.placeholder.com/400x300?text=Our+First+Date'">
-                        <p class="date-text">Oct 11, 2023 - First Date ❤️</p>
                     </div>
                     <div class="memory-item">
                         <img src="images/surprise2.jpeg"
                             onerror="this.src='https://via.placeholder.com/400x300?text=Best+Trip'">
-                        <p class="date-text">Feb 14, 2024 - Valentine's Day 🌹</p>
                     </div>
                 </div>
                 <button onclick="switchView(5)">See Final Message ❤️</button>
@@ -724,7 +722,7 @@
     <!-- VIEW 5: Final -->
     <div id="view5" class="view">
         <div class="final-text">
-           Love You Dear ❤️
+            Love You Dear ❤️
         </div>
         <div class="heart-beat">💖</div>
     </div>
@@ -1162,7 +1160,8 @@
         function initGiftLogic() {
             // Reset box states
             document.querySelector('.gift-grid').classList.remove('hidden');
-            document.getElementById('gift-hint').innerText = "Pick a gift for a surprise! 🎁";
+            document.getElementById('gift-hint').innerText = "Pick the Correct Gift! 🎁";
+            document.getElementById('gift-hint').style.color = '#f48fb1'; // reset color
             document.getElementById('gift-title').innerText = "Pick a Gift! 🎁";
             document.getElementById('gift-reveal').classList.add('hidden');
 
@@ -1172,21 +1171,48 @@
                 box.style.cursor = 'pointer';
             });
 
-            // Any gift is the correct gift now!
-            correctGiftIndex = -1;
+            // Randomize correct gift (1 to 4)
+            correctGiftIndex = Math.floor(Math.random() * 4) + 1;
         }
 
         function checkGift(box, index) {
-            // Make it easy: Any box is the correct one!
-            if (true) {
-                // Reveal
+            // Prevent clicking if already opened/wrong
+            if (box.innerText === '❌' || box.style.cursor === 'default') return;
+
+            if (index === correctGiftIndex) {
+                // Correct!
+
+                // Hide grid
                 document.querySelector('.gift-grid').classList.add('hidden');
                 document.getElementById('gift-hint').classList.add('hidden');
-                document.getElementById('gift-title').innerText = ""; // Hide title
+                document.getElementById('gift-title').innerText = "";
 
+                // Show Reveal with "Happy Valentine's Day" text
                 const reveal = document.getElementById('gift-reveal');
+                const revealHeader = reveal.querySelector('h2');
+                if (revealHeader) {
+                    revealHeader.innerText = "Happy Valentine's Day! 🌹";
+                }
+
                 reveal.classList.remove('hidden');
                 createConfetti();
+            } else {
+                // Wrong / Error
+                box.classList.add('shake');
+                box.style.color = '#ef5350'; // Red color for error
+                box.innerText = '❌'; // Show X
+                box.style.cursor = 'default';
+
+                // Show temporary error message
+                const hint = document.getElementById('gift-hint');
+                const originalText = hint.innerText;
+                hint.innerText = "Oops! Wrong box! 😢 Suggestion: Try another one!";
+                hint.style.color = 'red';
+
+                setTimeout(() => {
+                    box.classList.remove('shake');
+                    // We keep it as X/red to show it's used
+                }, 500);
             }
         }
 

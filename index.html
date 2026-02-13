@@ -443,6 +443,47 @@
             }
         }
 
+        /* --- View Scratch --- */
+        .scratch-container {
+            position: relative;
+            width: 300px;
+            height: 150px;
+            margin: 0 auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .scratch-content {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #fff 0%, #ffebee 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #d81b60;
+            font-weight: bold;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.8rem;
+            text-align: center;
+            padding: 10px;
+            z-index: 1;
+        }
+
+        #scratch-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 2;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
         /* --- View Gift --- */
         .gift-grid {
             display: flex;
@@ -455,7 +496,7 @@
             font-size: 4rem;
             cursor: pointer;
             transition: transform 0.3s;
-            animation: float 3s infinite ease-in-out;
+            /* animation removed to keep them still */
             user-select: none;
         }
 
@@ -627,6 +668,27 @@
         </div>
     </div>
 
+    <!-- VIEW 4.25: Scratch Card -->
+    <div id="view_scratch" class="view">
+        <div class="container">
+            <h2 style="color: #d81b60; margin-bottom: 2rem;">Scratch to Reveal a Secret! ✨</h2>
+            <div class="scratch-container">
+                <!-- Hidden Content -->
+                <div class="scratch-content">
+                    "When you miss me..." ❤️<br>
+
+                </div>
+                <!-- Overlay Canvas -->
+                <canvas id="scratch-canvas" width="300" height="150"></canvas>
+            </div>
+
+            <button id="after-scratch-btn" class="hidden" onclick="switchView('_gift')" style="margin-top: 30px;">
+                Continue ➡️
+            </button>
+            <p style="margin-top: 15px; color: #f48fb1; font-size: 0.9rem;">(Scratch the card above!)</p>
+        </div>
+    </div>
+
     <!-- VIEW 4.5: Gift Surprise -->
     <div id="view_gift" class="view">
         <div class="container">
@@ -662,7 +724,7 @@
     <!-- VIEW 5: Final -->
     <div id="view5" class="view">
         <div class="final-text">
-            Happy Valentine's Day<br>Love You Dear ❤️
+           Love You Dear ❤️
         </div>
         <div class="heart-beat">💖</div>
     </div>
@@ -680,6 +742,7 @@
                 // Init specific logic
                 if (viewNumber === 3) initProposalLogic();
                 if (viewNumber === 4) initPhotoQuiz();
+                if (viewNumber === '_scratch') initScratchCard();
                 if (viewNumber === '_gift') initGiftLogic();
                 if (viewNumber === 5) initFinalLogic();
             }
@@ -913,9 +976,9 @@
                 text: "Where is our dream vacation?",
                 image: "https://via.placeholder.com/300x300?text=Vacation", // Placeholder 
                 options: [
-                    { text: "Paris", correct: true },
+                    { text: "Paris", correct: false },
                     { text: "Maldives", correct: false },
-                    { text: "Switzerland", correct: false },
+                    { text: "Switzerland", correct: true },
                     { text: "Disney", correct: false }
                 ]
             }
@@ -929,7 +992,7 @@
 
         function loadPhotoQuestion() {
             if (currentPhotoQIndex >= photoQuestions.length) {
-                switchView('_gift'); // Go to Gift View instead of Final
+                switchView('_scratch'); // Go to Scratch View instead of Gift
                 return;
             }
 
@@ -977,14 +1040,130 @@
             }
         }
 
+        // --- Logic for View 4.25 (Scratch Card) ---
+        function initScratchCard() {
+            const canvas = document.getElementById('scratch-canvas');
+            const ctx = canvas.getContext('2d');
+            // Reset state
+            document.getElementById('after-scratch-btn').classList.add('hidden');
+
+            // Set canvas size matching CSS pixels to avoid blur
+            // We use the attributes width/height from HTML or set them here
+            canvas.width = 300;
+            canvas.height = 150;
+
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Fill with coating
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = '#CCCCCC'; // Silver/Gray
+            ctx.fillRect(0, 0, w, h);
+
+            // Add pattern or text
+            ctx.fillStyle = '#999999';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = "center";
+            ctx.fillText("Scratch Me!", w / 2, h / 2);
+
+            // Sparkling/Dust effect (simple noise)
+            for (let i = 0; i < 500; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#EEEEEE' : '#AAAAAA';
+                ctx.fillRect(Math.random() * w, Math.random() * h, 2, 2);
+            }
+
+            let isDrawing = false;
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                let clientX, clientY;
+
+                if (e.changedTouches && e.changedTouches.length > 0) {
+                    clientX = e.changedTouches[0].clientX;
+                    clientY = e.changedTouches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+
+                return {
+                    x: (clientX - rect.left) * (canvas.width / rect.width),
+                    y: (clientY - rect.top) * (canvas.height / rect.height)
+                };
+            }
+
+            function scratch(e) {
+                if (!isDrawing) return;
+                e.preventDefault(); // Prevent scrolling on touch
+                const pos = getPos(e);
+
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Throttled check for performance
+                if (Math.random() > 0.5) checkScratchCompletion();
+            }
+
+            function startDraw(e) { isDrawing = true; scratch(e); }
+            function endDraw() { isDrawing = false; }
+
+            // Mouse
+            canvas.onmousedown = startDraw;
+            canvas.onmousemove = scratch;
+            canvas.onmouseup = endDraw;
+            canvas.onmouseleave = endDraw;
+
+            // Touch
+            canvas.ontouchstart = startDraw;
+            canvas.ontouchmove = scratch;
+            canvas.ontouchend = endDraw;
+        }
+
+        function checkScratchCompletion() {
+            const canvas = document.getElementById('scratch-canvas');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Sample pixels (check center area mostly or stride)
+            // Getting full image data is expensive, let's optimize by checking stride
+            const imageData = ctx.getImageData(0, 0, w, h);
+            const pixels = imageData.data;
+            let transparentCount = 0;
+            const totalPixels = pixels.length / 4;
+
+            // Check opacity channel (every 4th byte)
+            // Optimization: check every 10th pixel
+            for (let i = 3; i < pixels.length; i += 40) {
+                if (pixels[i] < 128) {
+                    transparentCount++;
+                }
+            }
+
+            // Since we sample 1/10th, total sample size is totalPixels / 10
+            const sampleSize = totalPixels / 10;
+            const percent = (transparentCount / sampleSize) * 100;
+
+            if (percent > 40) {
+                const btn = document.getElementById('after-scratch-btn');
+                if (btn.classList.contains('hidden')) {
+                    btn.classList.remove('hidden');
+                    btn.classList.add('show');
+                    createConfetti();
+                }
+            }
+        }
+
         // --- Logic for View 4.5 (Gift) ---
         let correctGiftIndex = 0;
 
         function initGiftLogic() {
             // Reset box states
             document.querySelector('.gift-grid').classList.remove('hidden');
-            document.getElementById('gift-hint').classList.remove('hidden');
-            document.getElementById('gift-title').innerText = "Pick the Correct Gift! 🎁";
+            document.getElementById('gift-hint').innerText = "Pick a gift for a surprise! 🎁";
+            document.getElementById('gift-title').innerText = "Pick a Gift! 🎁";
             document.getElementById('gift-reveal').classList.add('hidden');
 
             document.querySelectorAll('.gift-box').forEach(box => {
@@ -993,12 +1172,13 @@
                 box.style.cursor = 'pointer';
             });
 
-            // Randomize correct gift (1 to 4)
-            correctGiftIndex = Math.floor(Math.random() * 4) + 1;
+            // Any gift is the correct gift now!
+            correctGiftIndex = -1;
         }
 
         function checkGift(box, index) {
-            if (index === correctGiftIndex) {
+            // Make it easy: Any box is the correct one!
+            if (true) {
                 // Reveal
                 document.querySelector('.gift-grid').classList.add('hidden');
                 document.getElementById('gift-hint').classList.add('hidden');
@@ -1007,13 +1187,6 @@
                 const reveal = document.getElementById('gift-reveal');
                 reveal.classList.remove('hidden');
                 createConfetti();
-            } else {
-                // Wrong
-                box.classList.add('shake');
-                box.style.color = '#ccc'; // Gray it out
-                box.style.cursor = 'default';
-                // Remove shake class after animation so it can be re-triggered if needed (though we disabled it)
-                setTimeout(() => box.classList.remove('shake'), 500);
             }
         }
 
